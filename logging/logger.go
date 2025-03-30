@@ -6,21 +6,33 @@ import (
 )
 
 // NewLogger creates a new logger based on the provided level, which must be "debug","info","warn" or "error"
-func NewLogger(level string) Logger {
-	var l slog.Level
-	if err := l.UnmarshalText([]byte(level)); err != nil {
-		slog.Warn("could not unmarshall level, defaulting to 'info'", "level", level, "error", err)
-		l = slog.LevelInfo
+func NewLogger(level string, JSONFormat bool) *Logger {
+	var (
+		sLevel slog.Level
+		opts   *slog.HandlerOptions
+		logger *slog.Logger
+	)
+
+	if err := sLevel.UnmarshalText([]byte(level)); err != nil {
+		slog.Warn("could not unmarshall level, defaulting to info level", "level", level, "error", err)
+		sLevel = slog.LevelInfo
 	}
-	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: l}))
-	return Logger{s: logger}
+	opts = &slog.HandlerOptions{Level: sLevel}
+
+	if JSONFormat {
+		logger = slog.New(slog.NewJSONHandler(os.Stderr, opts))
+	} else {
+		logger = slog.New(slog.NewTextHandler(os.Stderr, opts))
+	}
+
+	return &Logger{logger}
 }
 
 type Logger struct {
-	s *slog.Logger
+	*slog.Logger
 }
 
-func (l Logger) Fatal(msg string, err error) {
-	l.s.Error(msg, "error", err)
+func (l *Logger) Fatal(msg string, err error) {
+	l.Error(msg, "error", err)
 	os.Exit(1)
 }
