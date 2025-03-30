@@ -4,7 +4,7 @@ import (
 	"net"
 )
 
-// IsTunnelConnected returns true is there is running interface of type point to point
+// IsTunnelConnected returns true if there is at least one interface of type point to point that is up and running
 func IsTunnelConnected() bool {
 	interfaces, err := net.Interfaces()
 	if err != nil {
